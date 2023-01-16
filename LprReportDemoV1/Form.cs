@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -6,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Spire.Xls;
+
 using CIT.LPR.SaveImageUtils;
 using CIT.Utils.Logs;
-
 
 
 namespace LprReportDemoV1
@@ -18,7 +19,6 @@ namespace LprReportDemoV1
 
         static CreativeLoggerV1 logger = new CreativeLoggerV1("LprReportDemo", @".\Logs\LprReportDemo");
         LogFunctionV1 log = null;
-
 
         public Form()
         {
@@ -38,6 +38,18 @@ namespace LprReportDemoV1
             exportPathTextBox.Text = $"C:\\Users\\{Environment.UserName}\\Documents";
         }
 
+        private void imgPathBrowseButton_Click(object sender, EventArgs e)
+        {
+            string testo = openFolderBrowseDialog();
+            imgPathTextBox.Text = testo;
+        }
+
+        private void exportPathBrowseButton_Click(object sender, EventArgs e)
+        {
+            string testy = openFolderBrowseDialog();
+            exportPathTextBox.Text = testy;
+        }
+
 
         private void onExportButtonClicked(object sender, EventArgs eventArgs)
         {
@@ -55,73 +67,111 @@ namespace LprReportDemoV1
             Task.Run(() =>
             {
 
-                SaveImageDirectoryInfo saveImageDirectory = new SaveImageDirectoryInfo(baseImgPath);
-                var saveImgFileInfoList = saveImageDirectory.getSaveImageFileInfo();
+                SaveImageDirectoryInfo saveImgDirectory = new SaveImageDirectoryInfo(baseImgPath);
+                var saveImgFileInfoList = saveImgDirectory.getSaveImageFileInfo();
 
                 try
                 {
-                    Workbook workbook = new Workbook();
-                    Worksheet worksheet = workbook.Worksheets[0];
 
-                    #region    INIT_COLUMN_WIDTH
+                    //a copy of SaveImageFileInfo
+                    LinkedList<SaveImageFileInfo> saveImageFileInfoLinkedList = new LinkedList<SaveImageFileInfo>(saveImgFileInfoList);
 
-                    worksheet.Range["A1"].ColumnWidth = 8;
-                    worksheet.Range["B1"].ColumnWidth = 60.25;
-                    worksheet.Range["C1"].ColumnWidth = 8.5;
-                    worksheet.Range["D1"].ColumnWidth = 8;
+                    int ExcelCounter = 1;
 
-                    #endregion INIT_COLUMN_WIDTH
-
-                    worksheet.Range["A1"].RowHeight = 20;
-
-                    worksheet.Range["A1"].Text = "Date";
-                    worksheet.Range["B1"].Text = "Picture";
-                    worksheet.Range["C1"].Text = "License";
-                    worksheet.Range["D1"].Text = "หมายเหตุ";
-
-                    worksheet.Range["A1"].Style.VerticalAlignment = VerticalAlignType.Center;
-                    worksheet.Range["B1"].Style.VerticalAlignment = VerticalAlignType.Center;
-                    worksheet.Range["C1"].Style.VerticalAlignment = VerticalAlignType.Center;
-                    worksheet.Range["D1"].Style.VerticalAlignment = VerticalAlignType.Center;
-
-
-                    for (int i = 0; i < saveImgFileInfoList.Count; i++)
+                    while (saveImageFileInfoLinkedList.Count > 0)
                     {
-                        int rowIndex = 2 + i;
-                        var eachSaveImgFileInfo = saveImgFileInfoList[i];
-                        String dateTimeStr = eachSaveImgFileInfo.saveImageDirectoryInfo.getDateStringForDisplayInUi() + "\n" + eachSaveImgFileInfo.getTimeStringForDisplayInUi();
-                        Image image = loadImage(eachSaveImgFileInfo.fullPath); //ดึงรูปมาใส่ตัวแปร image
-                        String licenseStr = eachSaveImgFileInfo.licensePlate; //ดึงทะเบียนมาใส่ตัวแปร licenseStr
-                        String province = eachSaveImgFileInfo.province; //ดึงจังหวัดมาใส่ตัวแปร province
 
-                        #region    INIT_ROW_WIDTH
-                        worksheet.Range["A" + rowIndex].RowHeight = 190;
-                        #endregion INIT_ROW_WIDTH
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
 
-                        //Add data to table
-                        worksheet.Range["A" + rowIndex].Text = dateTimeStr;
-                        worksheet.Pictures.Add(rowIndex, 2, image);
-                        worksheet.Range["C" + rowIndex].Text = licenseStr;
-                        worksheet.Range["D" + rowIndex].Text = "";
+                        Workbook workbook = new Workbook();
+                        Worksheet worksheet = workbook.Worksheets[0];
+                        #region    INIT_EXCEL_PROPERTIES
 
-                        //Allign output to center of the field
-                        worksheet.Range["A" + rowIndex].Style.VerticalAlignment = VerticalAlignType.Center;
-                        worksheet.Range["C" + rowIndex].Style.VerticalAlignment = VerticalAlignType.Center;
-                        worksheet.Range["C" + rowIndex].Style.HorizontalAlignment = HorizontalAlignType.Center;
+                        worksheet.Range["A1"].ColumnWidth = 8;
+                        worksheet.Range["B1"].ColumnWidth = 60.25;
+                        worksheet.Range["C1"].ColumnWidth = 8.5;
+                        worksheet.Range["D1"].ColumnWidth = 8;
 
-                        Thread.Sleep(100);
+                        worksheet.Range["A1"].RowHeight = 20;
+
+                        worksheet.Range["A1"].Text = "Date";
+                        worksheet.Range["B1"].Text = "Picture";
+                        worksheet.Range["C1"].Text = "License";
+                        worksheet.Range["D1"].Text = "หมายเหตุ";
+
+                        #endregion INIT_EXCEL_PROPERTIES
+
+                        List<SaveImageFileInfo> eachList = new List<SaveImageFileInfo>();
+                        //this part move data in form of LinkedList to remove first 300 datas with new set of datas to put in to loop
+                        while ((eachList.Count < 300) && (saveImageFileInfoLinkedList.Count > 0))
+                        {
+                            eachList.Add(saveImageFileInfoLinkedList.First.Value);
+                            saveImageFileInfoLinkedList.RemoveFirst();
+                        }
+                        //now the variable 'eachList' only contain 300 or less datas
+
+
+                        List<Image> imageList = new List<Image>();
+
+
+
+                        for (int i = 0; i < eachList.Count; i++)
+                        {
+                            //put each datas in 'eachList' in to each Excel row
+                            int rowIndex = 2 + i;
+                            var eachSaveImgFileInfo = eachList[i];
+                            String dateTimeStr = eachSaveImgFileInfo.saveImageDirectoryInfo.getDateStringForDisplayInUi() + "\n" + eachSaveImgFileInfo.getTimeStringForDisplayInUi();
+                            Image image = loadImage(eachSaveImgFileInfo.fullPath);
+                            imageList.Add(image);
+                            String licenseStr = eachSaveImgFileInfo.licensePlate;
+                            String province = eachSaveImgFileInfo.province;
+
+                            #region IN_EXCEL_PROPERTIES
+
+                            worksheet.Range["A" + rowIndex].RowHeight = 190;
+
+                            worksheet.Range["A" + rowIndex].Text = dateTimeStr;
+                            worksheet.Pictures.Add(rowIndex, 2, image);
+                            worksheet.Range["C" + rowIndex].Text = licenseStr;
+                            worksheet.Range["D" + rowIndex].Text = "";
+
+                            worksheet.Range["A" + rowIndex].Style.VerticalAlignment = VerticalAlignType.Center;
+                            worksheet.Range["B" + rowIndex].Style.VerticalAlignment = VerticalAlignType.Center;
+                            worksheet.Range["C" + rowIndex].Style.VerticalAlignment = VerticalAlignType.Center;
+                            #endregion IN_EXCEL_PROPERTIES
+
+                            Thread.Sleep(100);
+                        }
+
+                        #region END_EXCEL_PROPERTIES
+
+                        string borderBound = $"A1:D{(eachList.Count + 1).ToString()}";
+                        CellRange borderRange = worksheet.Range[borderBound];
+                        borderRange.BorderAround(LineStyleType.Thin, Color.Black);
+                        borderRange.BorderInside(LineStyleType.Thin, Color.Black);
+
+                        string smallFontBound = $"A2:A{(eachList.Count + 1).ToString()}";
+                        CellRange fontRange = worksheet.Range[smallFontBound];
+                        fontRange.Style.Font.Size = 8;
+                        #endregion END_EXCEL_PROPERTIES
+
+                        //after the for loop above is done, put datas in to Excel file
+                        workbook.SaveToFile(exportPathTextBox.Text + "\\" + exportFileNameTextBox.Text + "-" + ExcelCounter + ".xls");
+                        foreach (Image im in imageList)
+                        {
+                            im.Dispose();
+                        }
+                        worksheet.Dispose();
+                        workbook.Dispose();
+
+                        ExcelCounter++;
+
                     }
 
-                    string borderBound = $"A1:D{(saveImgFileInfoList.Count + 1).ToString()}";
-                    CellRange borderRange = worksheet.Range[borderBound];
-                    borderRange.BorderAround(LineStyleType.Thin, Color.Black);
-                    borderRange.BorderInside(LineStyleType.Thin, Color.Black);
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
 
-                    string smallFontBound = $"A2:A{(saveImgFileInfoList.Count + 1).ToString()}";
-                    CellRange fontRange = worksheet.Range[smallFontBound];
-                    fontRange.Style.Font.Size = 8;
-
-                    workbook.SaveToFile(exportPathTextBox.Text + "\\" + exportFileNameTextBox.Text + ".xls");
 
                 }
 
@@ -136,19 +186,14 @@ namespace LprReportDemoV1
                     if (exceptionThrown != null) { MessageBox.Show("Error : " + exceptionThrown.Message); }
                     this.exportButton.Enabled = true;
                 }));
+
             });
 
-            //หา Library ที่สามารถต่อไฟล์ได้ + หรือรวมไฟล์ได้ *** 
 
         }
 
 
         #region RESIZE_IMAGE_UTILS
-
-        //public static Image resizeImage(Image imgToResize, Size size){
-        //  return (Image)(new Bitmap(imgToResize, size));
-        //}
-
 
         public static Image loadImage(String imgPath)
         {
@@ -191,17 +236,17 @@ namespace LprReportDemoV1
 
         #endregion RESIZE_IMAGE_UTILS
 
+        public static string openFolderBrowseDialog()
+        {
+            string selectedPath = null;
+            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+            DialogResult dialogResult = folderBrowserDialog.ShowDialog();
+            if (dialogResult == DialogResult.OK && (!String.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath)))
+            {
+                selectedPath = folderBrowserDialog.SelectedPath;
+            }
+            return selectedPath;
+        }
     }
+
 }
-
-
-/*
-Image ratio
-1920 / 1080
-
-192 / 108
-48 / 27
-16 / 9
-640 / 360 ( x 40 ) 
-
- */
