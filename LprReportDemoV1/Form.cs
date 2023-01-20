@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using Spire.Xls;
 
 using CIT.LPR.SaveImageUtils;
@@ -31,25 +32,16 @@ namespace LprReportDemoV1
             };
         }
 
-
-        private void Form1_Load(object sender, EventArgs e)
+        private void onImgPathBrowseButtonClicked(object sender, EventArgs e)
         {
-            exportFileNameTextBox.Text = $"LPR Report";
-            exportPathTextBox.Text = $"C:\\Users\\{Environment.UserName}\\Documents";
+            string exportPath = openFolderBrowseDialog();
+            imgPathTextBox.Text = exportPath;
         }
-
-        private void imgPathBrowseButton_Click(object sender, EventArgs e)
+        private void onExportPathBrowseButtonClicked(object sender, EventArgs e)
         {
-            string testo = openFolderBrowseDialog();
-            imgPathTextBox.Text = testo;
+            string exportPath = openFolderBrowseDialog();
+            exportPathTextBox.Text = exportPath;
         }
-
-        private void exportPathBrowseButton_Click(object sender, EventArgs e)
-        {
-            string testy = openFolderBrowseDialog();
-            exportPathTextBox.Text = testy;
-        }
-
 
         private void onExportButtonClicked(object sender, EventArgs eventArgs)
         {
@@ -113,7 +105,6 @@ namespace LprReportDemoV1
 
 
                         List<Image> imageList = new List<Image>();
-
 
 
                         for (int i = 0; i < eachList.Count; i++)
@@ -186,9 +177,7 @@ namespace LprReportDemoV1
                     if (exceptionThrown != null) { MessageBox.Show("Error : " + exceptionThrown.Message); }
                     this.exportButton.Enabled = true;
                 }));
-
             });
-
 
         }
 
@@ -247,6 +236,8 @@ namespace LprReportDemoV1
             }
             return selectedPath;
         }
+
+        
     }
 
 }

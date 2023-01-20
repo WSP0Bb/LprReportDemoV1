@@ -38,8 +38,8 @@ namespace LprReportDemoV1
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.destinationGroupBox = new System.Windows.Forms.GroupBox();
-            this.imgPathBrowseButton = new System.Windows.Forms.Button();
             this.exportPathBrowseButton = new System.Windows.Forms.Button();
+            this.imgPathBrowseButton = new System.Windows.Forms.Button();
             this.destinationGroupBox.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -133,17 +133,6 @@ namespace LprReportDemoV1
             this.destinationGroupBox.TabStop = false;
             this.destinationGroupBox.Text = "Destination Folder";
             // 
-            // imgPathBrowseButton
-            // 
-            this.imgPathBrowseButton.Font = new System.Drawing.Font("CordiaUPC", 18F, System.Drawing.FontStyle.Bold);
-            this.imgPathBrowseButton.Location = new System.Drawing.Point(466, 45);
-            this.imgPathBrowseButton.Name = "imgPathBrowseButton";
-            this.imgPathBrowseButton.Size = new System.Drawing.Size(82, 34);
-            this.imgPathBrowseButton.TabIndex = 0;
-            this.imgPathBrowseButton.Text = "Browse...";
-            this.imgPathBrowseButton.UseVisualStyleBackColor = true;
-            this.imgPathBrowseButton.Click += new System.EventHandler(this.imgPathBrowseButton_Click);
-            // 
             // exportPathBrowseButton
             // 
             this.exportPathBrowseButton.Font = new System.Drawing.Font("CordiaUPC", 18F, System.Drawing.FontStyle.Bold);
@@ -153,7 +142,18 @@ namespace LprReportDemoV1
             this.exportPathBrowseButton.TabIndex = 5;
             this.exportPathBrowseButton.Text = "Browse...";
             this.exportPathBrowseButton.UseVisualStyleBackColor = true;
-            this.exportPathBrowseButton.Click += new System.EventHandler(this.exportPathBrowseButton_Click);
+            this.exportPathBrowseButton.Click += new System.EventHandler(this.onExportPathBrowseButtonClicked);
+            // 
+            // imgPathBrowseButton
+            // 
+            this.imgPathBrowseButton.Font = new System.Drawing.Font("CordiaUPC", 18F, System.Drawing.FontStyle.Bold);
+            this.imgPathBrowseButton.Location = new System.Drawing.Point(466, 45);
+            this.imgPathBrowseButton.Name = "imgPathBrowseButton";
+            this.imgPathBrowseButton.Size = new System.Drawing.Size(82, 34);
+            this.imgPathBrowseButton.TabIndex = 0;
+            this.imgPathBrowseButton.Text = "Browse...";
+            this.imgPathBrowseButton.UseVisualStyleBackColor = true;
+            this.imgPathBrowseButton.Click += new System.EventHandler(this.onImgPathBrowseButtonClicked);
             // 
             // Form
             // 
@@ -173,7 +173,6 @@ namespace LprReportDemoV1
             this.MaximizeBox = false;
             this.Name = "Form";
             this.Text = "ReportForm";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.destinationGroupBox.ResumeLayout(false);
             this.destinationGroupBox.PerformLayout();
             this.ResumeLayout(false);
