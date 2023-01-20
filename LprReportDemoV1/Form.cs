@@ -34,8 +34,8 @@ namespace LprReportDemoV1
 
         private void onImgPathBrowseButtonClicked(object sender, EventArgs e)
         {
-            string exportPath = openFolderBrowseDialog();
-            imgPathTextBox.Text = exportPath;
+            string imgPath = openFolderBrowseDialog();
+            imgPathTextBox.Text = imgPath;
         }
         private void onExportPathBrowseButtonClicked(object sender, EventArgs e)
         {
